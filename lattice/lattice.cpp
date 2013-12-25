@@ -1,14 +1,11 @@
 #include "lattice.h"
 
 node *A, *B;//[N][N], B[N][N];
-
 node* init()
 {
 	node *G = (node*)malloc(sizeof(node) * N * N);
 	for (int i=0; i<N; i++)
 		for (int j=0; j<N; j++) {
-			//G[i * N + j].id.x = i;
-			//G[i * N + j].id.y = j;
 			G[i * N + j].inter.x = i;
 			G[i * N + j].inter.y = j;
 			G[i * N + j].base[0].x = (N + i - 1) % N;
@@ -21,7 +18,7 @@ node* init()
 			G[i * N + j].base[3].y = (N + j + 1) % N;
 			G[i * N + j].alive = true;
 			G[i * N + j].cluster = 0;
-			//G[i * N + j].gaint = 0;
+			G[i * N + j].type = MONOMER;
 		}
 	return G;
 }
@@ -31,7 +28,7 @@ void shuffle(point* random_list, int length)
 	point temp;
 	int i, j;
 
-	srand(time(NULL));
+	//srand(time(NULL));
 	for (i=0; i<length; i++) {
 		j = rand() % length;
 		temp = random_list[i];
@@ -40,19 +37,21 @@ void shuffle(point* random_list, int length)
 	}
 }
 
-int get_rand_list(point** plist, float p)
+int get_rand_list(point** plist, double c)
 {
 	bool rand_flag[N*N];
-	int i, j, k=0, rand_count=0;
+	int rand_count=0;
 
-	srand(time(NULL));
-	for (i=0; i<N; i++) {
-		for (j=0; j<N; j++) {
-			float r = float(rand()) / RAND_MAX;
-			if (r <= p) {
+	//srand(time(NULL));
+	for (int i=0; i<N; i++) {
+		for (int j=0; j<N; j++) {
+			double r = (double)rand() / RAND_MAX;
+			if (r <= c) {
 				rand_flag[i*N+j] = true;
 				rand_count ++;
-			} else rand_flag[i*N+j] = false;
+			} else {
+				rand_flag[i*N+j] = false;
+			}
 		}
 	}
 	*plist = (point*)malloc(sizeof(point) * rand_count * 2);//rand_list and rand_copy
@@ -60,8 +59,9 @@ int get_rand_list(point** plist, float p)
 	if (*plist == NULL)
 		return 0;
 
-	for (i=0; i<N; i++) {
-		for (j=0; j<N; j++) {
+	int k = 0;
+	for (int i=0; i<N; i++) {
+		for (int j=0; j<N; j++) {
 			if (rand_flag[i*N+j]) {
 				(*plist)[k].x = i;
 				(*plist)[k].y = j;
@@ -80,6 +80,24 @@ void release(point *list)
 	}
 }
 
+gcsize get_size(node *G)
+{
+	gcsize s;
+	memset(&s, 0, sizeof(s));
+	for (int i=0; i<N; i++)
+		for (int j=0; j<N; j++)
+		{
+			if (G[i*N+j].alive)
+			{
+				s.maxsize++;
+				if (G[i*N+j].type==MONOMER)
+					s.monosize++;
+				else
+					s.dimersize++;
+			}
+		}
+	return s;
+}
 void network(point* rand_list, point* rand_copy, int rand_len)
 {
 	for (int i=0; i<rand_len; i++) {
@@ -87,16 +105,18 @@ void network(point* rand_list, point* rand_copy, int rand_len)
 		pta = rand_list[i];
 		ptb = rand_copy[i];
 		A[pta.x * N + pta.y].inter = ptb;
+		A[pta.x * N + pta.y].type = DIMER;
 		B[ptb.x * N + ptb.y].inter = pta;
+		B[ptb.x * N + ptb.y].type = DIMER;
 	}
 }
 
-void init_attack(float p)
+void init_attack(double p)
 {
-	srand(time(NULL));
+	srand(rand());
 	for (int i=0; i<N; i++)
 		for (int j=0; j<N; j++) {
-			float r = float(rand()) / RAND_MAX;
+			double r = (double)rand() / RAND_MAX;	
 			if (r <= p) {
 				A[i*N+j].alive = false;
 				point inter = A[i*N+j].inter;
@@ -141,8 +161,6 @@ int dfs(node *G, point pt, int lable)
 			if(neighbor->alive && neighbor->cluster == 0) {//alive and not visited
 				neighbor->cluster = lable;
 				size++;
-				if (size==5000)
-					printf("");
 				stack_push(ps, top->base[i]);
 				changed = true;
 			}
@@ -154,51 +172,54 @@ int dfs(node *G, point pt, int lable)
 	stack_release(ps);
 	return size;
 }
-int gaint_component(node *G1, node *G2)
+void gaint_component(node *G1, node *G2)
 {
 	int lable = 1;
 	point pt;
-	int maxsize = 0, maxcluster = 0, size = 0;
-	for (int i=0; i<N; i++)
-		for (int j=0; j<N; j++) {
+	int maxsize = 0, maxcluster = -1, size = 0, monosize=0, dimersize=0;
+
+	for (int i=0; i<N && size <= N*N/2+1; i++) {
+		for (int j=0; j<N && size <= N*N/2+1; j++) {
 			pt.x = i;
 			pt.y = j;
 			if (G1[i*N+j].alive && G1[i*N+j].cluster == 0) {//alive and not visited.
 				size = dfs(G1, pt, lable);
-				if (size > maxsize) {				
+				if (size > maxsize) {
 					maxcluster = lable;
 					maxsize = size;
-					//printf("%d\t%d\n", maxcluster, maxsize);
 				}
 				lable++;
 			}
 		}
+	}
 
-	for (int i=0; i<N; i++)
+	for (int i=0; i<N; i++) {
 		for (int j=0; j<N; j++) {
-			if (G1[i*N+j].cluster != maxcluster){
-				G1[i*N+j].alive = false;
-				point inter = G1[i*N+j].inter;
-				G2[inter.x*N+inter.y].alive = false;
+			if (G1[i*N+j].alive) {
+				if (G1[i*N+j].cluster != maxcluster){
+					G1[i*N+j].alive = false;
+					G2[G1[i*N+j].inter.x*N + G1[i*N+j].inter.y].alive = false;
+				}
+				G1[i*N+j].cluster = 0;
 			}
-			G1[i*N+j].cluster = 0;
 		}
-
-
-	return maxsize;
+	}
 }
 
 int main()
 {
-	point* rand_list = NULL;
-	point* rand_copy = NULL;
-	int rand_len = 0;
-	float c, p;
+	srand(time(NULL));
+
 	FILE *fp = fopen("data/result.dat", "w");
 
-	for (c=0.0; c<1.1; c+=0.1) {
-		for (p=0.01; p<=1.00; p+=0.01) {
+	for (double c=0.0; c<=1.0; c+=0.1) {
+		for (double p=0.01; p<=1.01; p+=0.01) {
 			for (int k=0; k<NSAMPLE; k++) {
+				gcsize s;
+				point* rand_list = NULL;
+				point* rand_copy = NULL;
+				int rand_len = 0;
+
 				A = init();
 				B = init();
 
@@ -209,23 +230,28 @@ int main()
 				network(rand_list, rand_copy, rand_len);
 				release(rand_copy);
 				release(rand_list);
-
+				
 				init_attack(p);
 
 				int pre_cluster_size = 0, cluster_size = 0;
+				
 				int iter = 0;
+				gcsize s1, s2;
+				memset(&s1, 0, sizeof(s1));
+				memset(&s2, 0, sizeof(s2));
 				while (1) {
 					iter++;
-					cluster_size = gaint_component(A, B);
+					gaint_component(A, B);
+					s=get_size(A);
+
+					cluster_size = s.maxsize;
 					if (cluster_size == pre_cluster_size)
 						break;
 					pre_cluster_size = cluster_size;
 					gaint_component(B, A);
-
-				
 				}
-				//printf("%d\t%.1f\t%.2f\t%d\t%d\n", k, c, p, cluster_size, iter);
-				fprintf(fp, "%d\t%.1f\t%.2f\t%d\t%d\n", k, c, p, cluster_size, iter);
+				s=get_size(A);
+				fprintf(fp, "%d\t%.1f\t%.2f\t%d\t%d\t%d\t%d\n", k, c, p, cluster_size, s.monosize, s.dimersize, iter);
 				free(A);
 				free(B);
 			}

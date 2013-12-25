@@ -3,17 +3,25 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-//#include "stdbool.h"
 
 #define N 100
 #define LATTICE 4
 #define NSAMPLE 10
+#define MONOMER 0
+#define DIMER 1
 
 typedef struct point
 {
 	int x;
 	int y;
 }point;
+
+typedef struct gcsize
+{
+	int maxsize;
+	int monosize;
+	int dimersize;
+}gcsize;
 
 typedef struct node
 {
@@ -22,9 +30,11 @@ typedef struct node
 	point base[LATTICE];
 	bool alive;
 	int cluster;
+	int type;
 	//int gaint;
 }node;
 
+/*********************************************************************/
 #define	STACK_INCREASEMENT N
 #define STACK_INITIAL N*10
 typedef struct stack
