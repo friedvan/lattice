@@ -176,7 +176,7 @@ void gaint_component(node *G1, node *G2)
 {
 	int lable = 1;
 	point pt;
-	int maxsize = 0, maxcluster = -1, size = 0, monosize=0, dimersize=0;
+	int maxsize = 0, maxcluster = -1, size = 0;//, monosize=0, dimersize=0;
 
 	for (int i=0; i<N && size <= N*N/2+1; i++) {
 		for (int j=0; j<N && size <= N*N/2+1; j++) {
