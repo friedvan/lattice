@@ -15,6 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lattice.h" />
+    <ClInclude Include="visual.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{658037EF-6D2E-4A72-8561-878DE8EAD83A}</ProjectGuid>
@@ -50,6 +51,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>D:\OpenCV2.1\include\opencv;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\OpenCV2.1\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

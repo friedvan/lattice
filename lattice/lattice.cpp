@@ -1,4 +1,6 @@
+
 #include "lattice.h"
+#include "visual.h"
 
 node *A, *B;//[N][N], B[N][N];
 node* init()
@@ -123,6 +125,8 @@ void init_attack(double p)
 				B[inter.x*N+inter.y].alive = false;
 			}
 		}
+	img_print(A, true);
+	img_print(B, false);
 }
 
 int dfs_recursive(node *G, point pt, int lable)
@@ -199,6 +203,8 @@ void gaint_component(node *G1, node *G2)
 				if (G1[i*N+j].cluster != maxcluster){
 					G1[i*N+j].alive = false;
 					G2[G1[i*N+j].inter.x*N + G1[i*N+j].inter.y].alive = false;
+					//img_print(A, true);
+					//img_print(B, false);
 				}
 				G1[i*N+j].cluster = 0;
 			}
@@ -208,12 +214,14 @@ void gaint_component(node *G1, node *G2)
 
 int main()
 {
+	//
+	img_init();
+	//
 	srand(time(NULL));
-
 	FILE *fp = fopen("data/result.dat", "w");
 
-	for (double c=0.0; c<=1.0; c+=0.1) {
-		for (double p=0.01; p<=1.01; p+=0.01) {
+	for (double c=1.0; c<=1.0; c+=0.1) {
+		for (double p=0.31; p<=1.01; p+=0.01) {
 			for (int k=0; k<NSAMPLE; k++) {
 				gcsize s;
 				point* rand_list = NULL;
@@ -243,12 +251,13 @@ int main()
 					iter++;
 					gaint_component(A, B);
 					s=get_size(A);
-
+					img_print(A, true);
 					cluster_size = s.maxsize;
 					if (cluster_size == pre_cluster_size)
 						break;
 					pre_cluster_size = cluster_size;
 					gaint_component(B, A);
+					img_print(B, false);
 				}
 				s=get_size(A);
 				fprintf(fp, "%d\t%.1f\t%.2f\t%d\t%d\t%d\t%d\n", k, c, p, cluster_size, s.monosize, s.dimersize, iter);
@@ -259,4 +268,7 @@ int main()
 		}
 	}
 	fclose(fp);
+	//
+	img_destroy();
+	//
 }

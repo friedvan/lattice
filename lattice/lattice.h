@@ -4,9 +4,9 @@
 #include <time.h>
 #include <string.h>
 
-#define N 100
+static const int N=1000;
 #define LATTICE 4
-#define NSAMPLE 10
+#define NSAMPLE 1
 #define MONOMER 0
 #define DIMER 1
 
@@ -96,4 +96,5 @@ int stack_len(stack *ps)
 {
 	return ps->tail - ps->head+1;
 }
+
 
