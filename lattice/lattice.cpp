@@ -8,8 +8,12 @@ node* init()
 	node *G = (node*)malloc(sizeof(node) * N * N);
 	for (int i=0; i<N; i++)
 		for (int j=0; j<N; j++) {
-			G[i * N + j].inter.x = i;
-			G[i * N + j].inter.y = j;
+			//G[i * N + j].inter.x = i;
+			//G[i * N + j].inter.y = j;
+			//set default inter node to a non-exsit node.
+			G[i * N + j].inter.y = -1;
+			G[i * N + j].inter.x = -1;
+
 			G[i * N + j].base[0].x = (N + i - 1) % N;
 			G[i * N + j].base[0].y = j;
 			G[i * N + j].base[1].x = (N + i + 1) % N;
@@ -122,26 +126,13 @@ void init_attack(double p)
 			if (r <= p) {
 				A[i*N+j].alive = false;
 				point inter = A[i*N+j].inter;
-				B[inter.x*N+inter.y].alive = false;
+				//if has interdependent node
+				if (inter.x != -1 && inter.y != -1)
+					B[inter.x*N+inter.y].alive = false;
 			}
 		}
 	//img_print(A, true);
 	//img_print(B, false);
-}
-
-int dfs_recursive(node *G, point pt, int lable)
-{
-	int size = 0;
-	node root = G[pt.x*N+pt.y];
-	if (!root.alive)
-		return 0;
-	for (int i=0; i<LATTICE; i++)
-	{
-		root.cluster = lable;
-		if (G[root.base[i].x * N + root.base[i].y].alive)
-			size += dfs_recursive(G, root.base[i], lable);
-	}
-	return size + 1;
 }
 
 int dfs(node *G, point pt, int lable)
@@ -152,8 +143,7 @@ int dfs(node *G, point pt, int lable)
 	stack_init(ps);
 	stack_push(ps, pt);
 
-	while (stack_len(ps) != 0)
-	{
+	while (stack_len(ps) != 0) {
 		point tmp = *(ps->tail);
 		node *top = G+tmp.x*N+tmp.y;
 		if (!top->alive)
@@ -202,7 +192,9 @@ void gaint_component(node *G1, node *G2)
 			if (G1[i*N+j].alive) {
 				if (G1[i*N+j].cluster != maxcluster){
 					G1[i*N+j].alive = false;
-					G2[G1[i*N+j].inter.x*N + G1[i*N+j].inter.y].alive = false;
+					//if has interdependent node
+					if (G1[i*N + j].inter.x != -1 && G1[i*N + j].inter.y != -1)
+						G2[G1[i*N + j].inter.x*N + G1[i*N + j].inter.y].alive = false;
 					//img_print(A, true);
 					//img_print(B, false);
 				}
@@ -220,8 +212,8 @@ int main()
 	srand(time(NULL));
 	FILE *fp = fopen("data/result.dat", "w");
 
-	for (double c=0.00; c<=0.1; c+=0.01) {
-		for (double p=0.30; p<=0.5; p+=0.01) {
+	for (double c=0.0; c<=1.0; c+=0.1) {
+		for (double p=0.01; p<=1.0; p+=0.01) {
 			for (int k=0; k<NSAMPLE; k++) {
 				gcsize s;
 				point* rand_list = NULL;

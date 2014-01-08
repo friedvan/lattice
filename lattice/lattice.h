@@ -4,9 +4,9 @@
 #include <time.h>
 #include <string.h>
 
-static const int N=100;
+static const int N=500;
 #define LATTICE 4
-#define NSAMPLE 10
+#define NSAMPLE 1
 #define MONOMER 0
 #define DIMER 1
 
