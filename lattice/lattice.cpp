@@ -1,6 +1,6 @@
 
 #include "lattice.h"
-#include "visual.h"
+//#include "visual.h"
 
 node *A, *B;//[N][N], B[N][N];
 node* init()
@@ -125,8 +125,8 @@ void init_attack(double p)
 				B[inter.x*N+inter.y].alive = false;
 			}
 		}
-	img_print(A, true);
-	img_print(B, false);
+	//img_print(A, true);
+	//img_print(B, false);
 }
 
 int dfs_recursive(node *G, point pt, int lable)
@@ -215,13 +215,13 @@ void gaint_component(node *G1, node *G2)
 int main()
 {
 	//
-	img_init();
+//	img_init();
 	//
 	srand(time(NULL));
 	FILE *fp = fopen("data/result.dat", "w");
 
-	for (double c=1.0; c<=1.0; c+=0.1) {
-		for (double p=0.31; p<=1.01; p+=0.01) {
+	for (double c=0.00; c<=0.1; c+=0.01) {
+		for (double p=0.30; p<=0.5; p+=0.01) {
 			for (int k=0; k<NSAMPLE; k++) {
 				gcsize s;
 				point* rand_list = NULL;
@@ -251,24 +251,24 @@ int main()
 					iter++;
 					gaint_component(A, B);
 					s=get_size(A);
-					img_print(A, true);
+					//img_print(A, true);
 					cluster_size = s.maxsize;
 					if (cluster_size == pre_cluster_size)
 						break;
 					pre_cluster_size = cluster_size;
 					gaint_component(B, A);
-					img_print(B, false);
+					//img_print(B, false);
 				}
 				s=get_size(A);
-				fprintf(fp, "%d\t%.1f\t%.2f\t%d\t%d\t%d\t%d\n", k, c, p, cluster_size, s.monosize, s.dimersize, iter);
+				fprintf(fp, "%d\t%f\t%f\t%d\t%d\t%d\t%d\n", k, c, p, cluster_size, s.monosize, s.dimersize, iter);
 				free(A);
 				free(B);
 			}
-			printf("%.1f\t%.2f\n", c, p);
+			printf("%.2f\t%.2f\n", c, p);
 		}
 	}
 	fclose(fp);
 	//
-	img_destroy();
+//	img_destroy();
 	//
 }
