@@ -8,7 +8,8 @@ stack *sps;
 void clear(node *G)
 {
 	for (int k = 0; k < N; k++) {
-		G[k].inter = k;
+		//G[k].inter = k;
+		G[k].inter = -1;			//not defaultly set
 		G[k].alive = true;
 		G[k].cluster = 0;
 		G[k].type = MONOMER;
@@ -41,15 +42,22 @@ void ER(node *G, double p)
 {
 	double r = 0.0;
 	for (int i = 0; i < N; i++) {
+		//time_t tr = 0, tp = 0;
 		for (int j = i + 1; j < N; j++) {
+			//time_t t3, t2, t1 = clock();
 			r = (double)rand() / RAND_MAX;
+			//t2 = clock();
+			//tr += t2 - t1;
 			//rand();
 			//printf("%f\n", r);
 			if (r <= p) {
 				stack_push(G[i].base, j);
 				stack_push(G[j].base, i);
 			}
+/*			t3 = clock();
+			tp += t3 - t2;   */			
 		}
+		//printf("%I64d\t%I64d\n", tr, tp);
 	}
 }
 void shuffle(int* random_list, int length)
@@ -140,7 +148,8 @@ void init_attack(double p)
 		double r = (double)rand() / RAND_MAX;
 		if (r <= p) {
 			A[j].alive = false;
-			B[A[j].inter].alive = false;
+			if (A[j].inter != -1)	   //if has interdependent node
+				B[A[j].inter].alive = false;
 		}
 		//img_print(A, true);
 		//img_print(B, false);
@@ -196,7 +205,8 @@ void gaint_component(node *G1, node *G2)
 		if (G1[j].alive) {
 			if (G1[j].cluster != maxcluster){
 				G1[j].alive = false;
-				G2[G1[j].inter].alive = false;
+				if (G1[j].inter != -1)
+					G2[G1[j].inter].alive = false;
 				//img_print(A, true);
 				//img_print(B, false);
 			}
@@ -226,11 +236,11 @@ int main()
 	//ER network with probability p
 	//!!!!!!!!for speed consideration, I moved it out of loop.
 	//However, random network should regenerate every relazation
-	ER(A, 0.0004);
-	ER(B, 0.0004);
+	ER(A, 2.5 / N);
+	ER(B, 2.5 / N);
 	//avg_degree(A);
 
-	for (double c=1.0; c<=1.0; c+=0.1) {
+	for (double c=0.0; c<=1.0; c+=0.1) {
 		for (double p=0.01; p<=1.0; p+=0.01) {
 			for (int k=0; k<NSAMPLE; k++) {
 				gcsize s;

@@ -6,14 +6,14 @@
 #include <time.h>
 #include <string.h>
 
-static const int N=10000;
-#define NSAMPLE 10	 
+static const int N=80000;
+#define NSAMPLE 1	 
 #define MONOMER 0
 #define DIMER 1
 
 
 /*********************************************************************/
-#define	STACK_INCREASEMENT 200
+#define	STACK_INCREASEMENT 50
 #define STACK_INITIAL 100
 typedef struct stack
 {
