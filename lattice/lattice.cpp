@@ -1,18 +1,23 @@
 
 #include "lattice.h"
-//#include "visual.h"
+#include "visual.h"
 
 node *A, *B;//[N][N], B[N][N];
 node* init()
 {
 	node *G = (node*)malloc(sizeof(node) * N * N);
+	if (G == NULL) {
+		printf("momory error\n");
+		exit(0);
+	}
+
 	for (int i=0; i<N; i++)
 		for (int j=0; j<N; j++) {
-			//G[i * N + j].inter.x = i;
-			//G[i * N + j].inter.y = j;
-			//set default inter node to a non-exsit node.
-			G[i * N + j].inter.y = -1;
-			G[i * N + j].inter.x = -1;
+			G[i * N + j].inter.x = i;
+			G[i * N + j].inter.y = j;
+			////set default inter node to a non-exsit node.
+			//G[i * N + j].inter.y = -1;
+			//G[i * N + j].inter.x = -1;
 
 			G[i * N + j].base[0].x = (N + i - 1) % N;
 			G[i * N + j].base[0].y = j;
@@ -52,7 +57,7 @@ int get_rand_list(point** plist, double c)
 	for (int i=0; i<N; i++) {
 		for (int j=0; j<N; j++) {
 			double r = (double)rand() / RAND_MAX;
-			if (r <= c) {
+			if (r < c) {
 				rand_flag[i*N+j] = true;
 				rand_count ++;
 			} else {
@@ -123,7 +128,7 @@ void init_attack(double p)
 	for (int i=0; i<N; i++)
 		for (int j=0; j<N; j++) {
 			double r = (double)rand() / RAND_MAX;	
-			if (r <= p) {
+			if (r < p) {
 				A[i*N+j].alive = false;
 				point inter = A[i*N+j].inter;
 				//if has interdependent node
@@ -202,12 +207,14 @@ void gaint_component(node *G1, node *G2)
 			}
 		}
 	}
+
+
 }
 
 int main()
 {
 	//
-//	img_init();
+	//img_init();
 	//
 	srand(time(NULL));
 	FILE *fp = fopen("data/result.dat", "w");
@@ -242,6 +249,9 @@ int main()
 				while (1) {
 					iter++;
 					gaint_component(A, B);
+					s1 = get_size(A);
+					s2 = get_size(B);
+					fprintf(fp, "%f\t%f\t%c\t%d\t%d\t%d\t%d\n", c, p, 'A', s1.dimersize, s1.maxsize, s2.dimersize , s2.maxsize);
 					s=get_size(A);
 					//img_print(A, true);
 					cluster_size = s.maxsize;
@@ -249,18 +259,22 @@ int main()
 						break;
 					pre_cluster_size = cluster_size;
 					gaint_component(B, A);
+					s1 = get_size(A);
+					s2 = get_size(B);
+					fprintf(fp, "%f\t%f\t%c\t%d\t%d\t%d\t%d\n", c, p, 'B', s1.dimersize, s1.maxsize, s2.dimersize, s2.maxsize);
 					//img_print(B, false);
+					break;
 				}
 				s=get_size(A);
-				fprintf(fp, "%d\t%f\t%f\t%d\t%d\t%d\t%d\n", k, c, p, cluster_size, s.monosize, s.dimersize, iter);
+				//fprintf(fp, "%d\t%f\t%f\t%d\t%d\t%d\t%d\n", k, c, p, cluster_size, s.monosize, s.dimersize, iter);
 				free(A);
 				free(B);
 			}
-			printf("%.2f\t%.2f\n", c, p);
+			printf("%.3f\t%.3f\n", c, p);
 		}
 	}
 	fclose(fp);
 	//
-//	img_destroy();
+	//img_destroy();
 	//
 }

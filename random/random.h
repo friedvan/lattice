@@ -6,8 +6,8 @@
 #include <time.h>
 #include <string.h>
 
-static const int N=80000;
-#define NSAMPLE 1	 
+static const int N=8000;
+#define NSAMPLE 10	 
 #define MONOMER 0
 #define DIMER 1
 

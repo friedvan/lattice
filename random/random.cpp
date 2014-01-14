@@ -50,7 +50,7 @@ void ER(node *G, double p)
 			//tr += t2 - t1;
 			//rand();
 			//printf("%f\n", r);
-			if (r <= p) {
+			if (r < p) {
 				stack_push(G[i].base, j);
 				stack_push(G[j].base, i);
 			}
@@ -80,7 +80,7 @@ int get_rand_list(int** plist, double c)
 	int rand_count = 0;
 	for (int j = 0; j < N; j++) {
 		double r = (double)rand() / RAND_MAX;
-		if (r <= c) {
+		if (r < c) {
 			rand_flag[j] = true;
 			rand_count++;
 		}
@@ -146,7 +146,7 @@ void init_attack(double p)
 
 	for (int j = 0; j < N; j++) {
 		double r = (double)rand() / RAND_MAX;
-		if (r <= p) {
+		if (r < p) {
 			A[j].alive = false;
 			if (A[j].inter != -1)	   //if has interdependent node
 				B[A[j].inter].alive = false;
@@ -187,7 +187,6 @@ void gaint_component(node *G1, node *G2)
 {
 	int lable = 1;
 	int maxsize = 0, maxcluster = -1, size = 0;//, monosize=0, dimersize=0;
-
 
 	for (int j = 0; j<N && size <= N / 2 + 1; j++) {
 		if (G1[j].alive && G1[j].cluster == 0) {//alive and not visited.
@@ -240,8 +239,8 @@ int main()
 	ER(B, 2.5 / N);
 	//avg_degree(A);
 
-	for (double c=0.0; c<=1.0; c+=0.1) {
-		for (double p=0.01; p<=1.0; p+=0.01) {
+	for (double c=0.5; c<=1.0; c+=0.1) {
+		for (double p=0.31; p<=1.0; p+=0.01) {
 			for (int k=0; k<NSAMPLE; k++) {
 				gcsize s;
 				int* rand_list = NULL;

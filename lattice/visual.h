@@ -8,7 +8,7 @@
 #pragma comment(lib, "cxcore210.lib")
 
 
-IplImage *img = cvCreateImage(cvSize(N, N), IPL_DEPTH_8U, 1);
+IplImage *img = cvCreateImage(cvSize(N, N), IPL_DEPTH_8U, 4);
 
 void img_init() {
 	
@@ -16,16 +16,40 @@ void img_init() {
 	cvNamedWindow("B");
 }
 
-void img_print(node *G, bool isA) {
-	//char c = (rand()%255+150) % 255;
-	for(int i=0; i<N; i++)
-		for (int j=0; j<N; j++) {
-			if (G[i*N+j].alive) 
-				img->imageData[i * img->widthStep + j] = 255;
-			else
-				img->imageData[i * img->widthStep + j] = 0;
+int neighbor_num(node *G, int k) {
+	int n = 0;
+	for (int i = 0; i < LATTICE; i++) {
+		if (G[G[k].base[i].x * N + G[k].base[i].y].alive) {
+			n++;
 		}
+	}
+	return n;
+}
 
+void img_print(node *G, bool isA) {
+	for (int i = 0; i < N; i++)	  {
+		for (int j = 0; j < N; j++) {
+			if (G[i*N + j].alive) {
+				if (G[i*N + j].type == MONOMER)	{
+					img->imageData[i * img->widthStep + img->nChannels*j] = 0;
+					img->imageData[i * img->widthStep + img->nChannels*j + 1] = 0;
+					img->imageData[i * img->widthStep + img->nChannels*j + 2] = 255;
+				} else {
+					img->imageData[i * img->widthStep + img->nChannels*j] = 255;
+					img->imageData[i * img->widthStep + img->nChannels*j + 1] = 0;
+					img->imageData[i * img->widthStep + img->nChannels*j + 2] = 0;
+				} 			
+				//img->imageData[i * img->widthStep + img->nChannels*j] = 0 + (int)(255 / 8 * neighbor_num(G, i*N + j));
+				//img->imageData[i * img->widthStep + img->nChannels*j + 1] = 255+(int)(255 / 8 * neighbor_num(G, i*N + j));
+				//img->imageData[i * img->widthStep + img->nChannels*j + 2] = 0 + (int)(255 / 8 * neighbor_num(G, i*N + j));
+							   
+			} else {
+				img->imageData[i * img->widthStep + img->nChannels*j] = 0;
+				img->imageData[i * img->widthStep + img->nChannels*j + 1] = 0;
+				img->imageData[i * img->widthStep + img->nChannels*j + 2] = 0;
+			}
+		}
+	}
 
 	if (isA)
 		cvShowImage("A", img);
